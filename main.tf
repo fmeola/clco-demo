@@ -25,12 +25,18 @@ resource "azurerm_linux_web_app" "example" {
     application_stack {
       python_version = "3.11"
     }
+    vnet_route_all_enabled = true
   }
 
   app_settings = {
     "AZ_ENDPOINT" = azurerm_cognitive_account.example.endpoint
     "AZ_KEY"      = azurerm_cognitive_account.example.primary_access_key
   }
+}
+
+resource "azurerm_app_service_virtual_network_swift_connection" "example" {
+  app_service_id = azurerm_linux_web_app.example.id
+  subnet_id      = azurerm_subnet.example.id
 }
 
 resource "azurerm_cognitive_account" "example" {
@@ -40,6 +46,11 @@ resource "azurerm_cognitive_account" "example" {
   kind                = "TextAnalytics"
   sku_name            = "S"
   custom_subdomain_name = "clcog62025csdn" 
+  public_network_access_enabled = false
+  network_acls {
+    default_action = "Deny"
+    bypass         = "AzureServices"
+  }
   tags = {
     Acceptance = "Test"
   }
